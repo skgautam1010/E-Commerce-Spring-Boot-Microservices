@@ -13,7 +13,6 @@ public class OrderMapper {
         order.setSkuCode(dto.getSkuCode());
         order.setQuantity(dto.getQuantity());
         order.setPrice(dto.getPrice());
-
         return order;
     }
 
