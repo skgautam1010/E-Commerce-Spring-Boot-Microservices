@@ -5,6 +5,7 @@ package com.ecommerce.inventory.service.serviceImpl;
 import com.ecommerce.inventory.dto.InventoryRequestDto;
 import com.ecommerce.inventory.dto.InventoryResponseDto;
 import com.ecommerce.inventory.entity.Inventory;
+import com.ecommerce.inventory.event.OrderPlacedEvent;
 import com.ecommerce.inventory.exceptions.InventoryException;
 import com.ecommerce.inventory.mapper.InventoryMapper;
 import com.ecommerce.inventory.repository.InventoryRepository;
@@ -29,4 +30,18 @@ public class InventoryServiceImpl implements InventoryService {
         Inventory inventory = inventoryMapper.toEntity(dto);
         inventoryRepository.save(inventory);
     }
+
+    @Override
+    public void updateInventory(OrderPlacedEvent event) {
+        Inventory inventory =  inventoryRepository.findBySkuCode(event.getSkuCode()).orElseThrow(() -> new InventoryException("Not Found" + event.getSkuCode()));
+        Integer availableQuantity = inventory.getQuantity();
+        Integer orderQuantity = event.getQuantity();
+        if(availableQuantity < orderQuantity) {
+            throw new RuntimeException("Insufficient Stock for SKU Code");
+        }
+        inventory.setQuantity(availableQuantity - orderQuantity);
+        inventoryRepository.save(inventory);
+    }
+
+
 }
