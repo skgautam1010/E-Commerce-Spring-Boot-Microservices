@@ -5,19 +5,25 @@ package com.ecommerce.inventory.service.serviceImpl;
 import com.ecommerce.inventory.dto.InventoryRequestDto;
 import com.ecommerce.inventory.dto.InventoryResponseDto;
 import com.ecommerce.inventory.entity.Inventory;
+import com.ecommerce.inventory.entity.ProcessedOrder;
 import com.ecommerce.inventory.event.OrderPlacedEvent;
 import com.ecommerce.inventory.exceptions.InventoryException;
 import com.ecommerce.inventory.mapper.InventoryMapper;
 import com.ecommerce.inventory.repository.InventoryRepository;
+import com.ecommerce.inventory.repository.ProcessedOrderRepository;
 import com.ecommerce.inventory.service.InventoryService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
 public class InventoryServiceImpl implements InventoryService {
     private final InventoryRepository inventoryRepository;
     private final InventoryMapper inventoryMapper;
+    private final ProcessedOrderRepository processedOrderRepository;
 
     @Override
     public InventoryResponseDto checkInventory(String skuCode) {
@@ -31,8 +37,12 @@ public class InventoryServiceImpl implements InventoryService {
         inventoryRepository.save(inventory);
     }
 
+    @Transactional
     @Override
     public void updateInventory(OrderPlacedEvent event) {
+        if(processedOrderRepository.findByOrderId(event.getOrderId())) {
+            return;
+        }
         Inventory inventory =  inventoryRepository.findBySkuCode(event.getSkuCode()).orElseThrow(() -> new InventoryException("Not Found" + event.getSkuCode()));
         Integer availableQuantity = inventory.getQuantity();
         Integer orderQuantity = event.getQuantity();
@@ -41,7 +51,9 @@ public class InventoryServiceImpl implements InventoryService {
         }
         inventory.setQuantity(availableQuantity - orderQuantity);
         inventoryRepository.save(inventory);
+        ProcessedOrder processedOrder = new ProcessedOrder();
+        processedOrder.setOrderId(event.getOrderId());
+        processedOrder.setProcessedAt(LocalDateTime.now());
+        processedOrderRepository.save(processedOrder);
     }
-
-
 }
