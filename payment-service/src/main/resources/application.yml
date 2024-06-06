@@ -1,3 +1,4 @@
 razorpay:
   key: rzp_test_xxx
   secret: XXXXXXX
+  webhook-secret: xxx
