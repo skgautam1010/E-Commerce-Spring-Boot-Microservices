@@ -25,3 +25,6 @@ spring:
           auth: true
           starttls:
             enable: true
+twilio:
+  account-sid: US97eea9811ad2c323a13519551e8f6dda
+  auth-token: 90df95258f91582da0f0c250cabaf228
