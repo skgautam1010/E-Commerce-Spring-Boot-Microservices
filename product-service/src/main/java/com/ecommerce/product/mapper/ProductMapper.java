@@ -11,7 +11,8 @@ public class ProductMapper {
     public ProductDto toDto(Product product) {
         return ProductDto.builder().id(product.getId()).name(product.getName()).description(product.getDescription())
                 .price(product.getPrice()).discountedPrice(product.getPrice()).quantity(product.getQuantity())
-                .brand(product.getBrand()).imageUrl(product.getImageUrl()).categoryId(product.getCategory().getId()).build();
+                .brand(product.getBrand()).imageUrl(product.getImageUrl()).categoryId(
+                        product.getCategory() != null ? product.getCategory().getId() : null).build();
     }
     public Product toEntity(ProductDto dto, Category category) {
         return Product.builder().name(dto.getName()).description(dto.getDescription()).price(dto.getPrice())

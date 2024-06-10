@@ -31,7 +31,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    @GetMapping("/login")
+    @PostMapping("/login")
     public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginRequestDto dto) {
         LoginResponseDto loggedIn = userService.login(dto);
         return ResponseEntity.status(HttpStatus.OK).body(loggedIn);

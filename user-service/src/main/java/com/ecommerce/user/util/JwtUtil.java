@@ -27,7 +27,7 @@ public class JwtUtil {
                 .claim("email", emailId)
                 .claim("role",role)
                 .issuedAt(new Date(now))
-                .expiration(new Date(expirationMs))
+                .expiration(new Date(now + expirationMs))
                 .signWith(secretKey).compact();
     }
     public Jws<Claims> validateToken(String token) {

@@ -10,12 +10,11 @@ import com.ecommerce.user.entity.User;import com.ecommerce.user.exception.Resour
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-
-    private UserRepository userRepository;
-    private PasswordEncoder passwordEncoder;
-    private UserMapper userMapper;
-    private JwtUtil jwtUtil;
-    private AuthMapper authMapper;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
+    private final JwtUtil jwtUtil;
+    private final AuthMapper authMapper;
 
     @Override
     public UserResponseDto register(UserCreateRequestDto dto) {
