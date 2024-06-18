@@ -6,9 +6,9 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class OrderEventProducer {
-    private final KafkaTemplate<String, OrderPlacedEvent> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public OrderEventProducer(KafkaTemplate<String, OrderPlacedEvent> kafkaTemplate) {
+    public OrderEventProducer(KafkaTemplate<String, Object> kafkaTemplate) {
         this.kafkaTemplate = kafkaTemplate;
     }
 
