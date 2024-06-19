@@ -20,7 +20,11 @@ public class JwtGatewayFilter implements GatewayFilter, Ordered {
     @Autowired
     private JWTUtil jwtUtil;
 
-    private static final List<String> PUBLIC_URLS = List.of("/api/users/register", "/api/users/login");
+    private static final List<String> PUBLIC_URLS = List.of(
+            "/api/users/register",
+            "/api/users/login",
+            "/products/images"
+    );
 
 
     @Override
@@ -62,12 +66,18 @@ public class JwtGatewayFilter implements GatewayFilter, Ordered {
         return exchange.getResponse().setComplete();
     }
 
-    private static final Map<String, Map<String, List<String>>> ROLE_BASED_PERMISSIONS = Map.of("ADMIN",
-            Map.of("GET", List.of("/api/products"),
-                    "POST", List.of("/api/products"),
-                        "PUT", List.of("/api/products"),
-                    "DELETE", List.of("/api/products")),
-            "USER", Map.of("GET", List.of("/api/products")));
+    private static final Map<String, Map<String, List<String>>> ROLE_BASED_PERMISSIONS = Map.of(
+            "ADMIN", Map.of(
+                    "GET", List.of("/api/products", "/api/categories", "/api/orders", "/api/payments"),
+                    "POST", List.of("/api/products", "/api/categories", "/api/inventory"),
+                    "PUT", List.of("/api/products", "/api/categories", "/api/payments"),
+                    "DELETE", List.of("/api/products", "/api/categories")
+            ),
+            "USER", Map.of(
+                    "GET", List.of("/api/products", "/api/categories", "/api/inventory", "/api/payments"),
+                    "POST", List.of("/api/categories", "/api/products", "/api/order", "/api/payment")
+            )
+    );
 
     public boolean isAuthorized(String role, String path, String method) {
         Map<String, List<String>> userRole = ROLE_BASED_PERMISSIONS.get(role);
