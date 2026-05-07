@@ -3,6 +3,7 @@ package com.ecommerce.apigateway.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class JwtGatewayFilter implements GatewayFilter, Ordered {
+public class JwtGatewayFilter implements GlobalFilter, Ordered {
 
     @Autowired
     private JWTUtil jwtUtil;
@@ -68,14 +69,14 @@ public class JwtGatewayFilter implements GatewayFilter, Ordered {
 
     private static final Map<String, Map<String, List<String>>> ROLE_BASED_PERMISSIONS = Map.of(
             "ADMIN", Map.of(
-                    "GET", List.of("/api/products", "/api/categories", "/api/orders", "/api/payments"),
-                    "POST", List.of("/api/products", "/api/categories", "/api/inventory"),
-                    "PUT", List.of("/api/products", "/api/categories", "/api/payments"),
-                    "DELETE", List.of("/api/products", "/api/categories")
+                    "GET", List.of("/api/products", "/api/category", "/api/orders", "/api/payments", "/api/users"),
+                    "POST", List.of("/api/products", "/api/category", "/api/inventory"),
+                    "PUT", List.of("/api/products", "/api/category", "/api/payments"),
+                    "DELETE", List.of("/api/products", "/api/category")
             ),
-            "USER", Map.of(
-                    "GET", List.of("/api/products", "/api/categories", "/api/inventory", "/api/payments"),
-                    "POST", List.of("/api/categories", "/api/products", "/api/order", "/api/payment")
+            "ROLE_USER", Map.of(
+                    "GET", List.of("/api/products", "/api/users", "/api/category", "/api/inventory", "/api/payments"),
+                    "POST", List.of("/api/category", "/api/products", "/api/order", "/api/payment")
             )
     );
 
