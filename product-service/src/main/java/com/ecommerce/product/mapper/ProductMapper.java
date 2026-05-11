@@ -10,7 +10,7 @@ public class ProductMapper {
 
     public ProductDto toDto(Product product) {
         return ProductDto.builder().id(product.getId()).name(product.getName()).description(product.getDescription())
-                .price(product.getPrice()).discountedPrice(product.getPrice()).quantity(product.getQuantity())
+                .price(product.getPrice()).discountedPrice(product.getDiscountedPrice()).quantity(product.getQuantity())
                 .brand(product.getBrand()).imageUrl(product.getImageUrl()).categoryId(
                         product.getCategory() != null ? product.getCategory().getId() : null).build();
     }

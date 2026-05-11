@@ -2,6 +2,7 @@ package com.ecommerce.product.service.serviceImpl;
 
 import com.ecommerce.product.dto.CategoryDto;
 import com.ecommerce.product.entity.Category;
+import com.ecommerce.product.exception.ResourceNotFoundException;
 import com.ecommerce.product.mapper.CategoryMapper;
 import com.ecommerce.product.repository.CategoryRepository;
 import com.ecommerce.product.service.CategoryService;
@@ -24,7 +25,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryDto updateCategory(CategoryDto dto, Long id) {
-        Category category = categoryRepository.findById(id).orElseThrow(() -> new RuntimeException("Category Not Found"));
+        Category category = categoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Category Not Found"));
         category.setName(dto.getName());
         category.setDescription(dto.getDescription());
         category.setParentId(dto.getParentId());
@@ -33,12 +34,13 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void deleteCategory(Long id) {
+        categoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Category Not Found"));
         categoryRepository.deleteById(id);
     }
 
     @Override
     public CategoryDto getCategory(Long id) {
-        Category category = categoryRepository.findById(id).orElseThrow(() -> new RuntimeException("Category Not Found"));
+        Category category = categoryRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Category Not Found"));
         return categoryMapper.toDto(category);
     }
 

@@ -3,7 +3,9 @@ package com.ecommerce.product.service.serviceImpl;
 import com.ecommerce.product.dto.ProductDto;
 import com.ecommerce.product.entity.Category;
 import com.ecommerce.product.entity.Product;
+import com.ecommerce.product.exception.ResourceNotFoundException;
 import com.ecommerce.product.mapper.ProductMapper;
+import com.ecommerce.product.repository.CategoryRepository;
 import com.ecommerce.product.repository.ProductRepository;
 import com.ecommerce.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,7 @@ import java.util.UUID;
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
+    private final CategoryRepository categoryRepository;
 
     private final String UPLOAD_DIR = System.getProperty("user.dir") + "/uploads/products/";
     private final long MAX_SIZE = 2*1024*1024;
@@ -37,7 +40,9 @@ public class ProductServiceImpl implements ProductService {
     public ProductDto createProduct(ProductDto dto) {
         Category category = null;
         if(dto.getCategoryId() != null) {
-            category = new Category();
+            category = categoryRepository.findById(dto.getCategoryId())
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException("Category not found"));
             category.setId(dto.getCategoryId());
         }
         Product product = productMapper.toEntity(dto,category);
@@ -47,15 +52,19 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductDto updateProduct(ProductDto dto, Long id) {
-        Product product = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product is Not Found"));
+        Product product = productRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Product is Not Found"));
         product.setName(dto.getName());
         product.setDescription(dto.getDescription());
         product.setPrice(dto.getPrice());
         product.setDiscountedPrice(dto.getDiscountedPrice());
         product.setQuantity(dto.getQuantity());
+        product.setBrand(dto.getBrand());
+        product.setImageUrl(dto.getImageUrl());
         if(dto.getCategoryId() != null) {
-            Category category = new Category();
-            category.setId(dto.getCategoryId());
+            Category category = categoryRepository.findById(dto.getCategoryId())
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException("Category not found"));
+
             product.setCategory(category);
         }
         return productMapper.toDto(productRepository.save(product));
@@ -63,18 +72,19 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void deleteProduct(Long id) {
+        productRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Product Not Found"));
         productRepository.deleteById(id);
     }
 
     @Override
     public ProductDto getProductById(Long id) {
-        Product product = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product Not Found"));
+        Product product = productRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Product Not Found"));
         return productMapper.toDto(product);
     }
 
     @Override
     public ProductDto uploadImage(Long id, MultipartFile multipartFile) throws IOException {
-        Product product = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product Not Found"));
+        Product product = productRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Product Not Found"));
         if(multipartFile.isEmpty()) {
             throw new RuntimeException("Image File is Empty");
         }
@@ -118,7 +128,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Page<ProductDto> searchProduct(String keyword, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Product> products = productRepository.searchProducts(keyword, pageable);
+        Page<Product> products = productRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword, pageable);
         return products.map(productMapper :: toDto);
     }
 

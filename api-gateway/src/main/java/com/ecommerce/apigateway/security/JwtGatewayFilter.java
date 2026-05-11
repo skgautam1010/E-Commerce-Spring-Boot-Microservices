@@ -5,6 +5,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
+import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -37,24 +39,33 @@ public class JwtGatewayFilter implements GlobalFilter, Ordered {
         }
         String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if(authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return unauthorized(exchange);
+            return unauthorized(exchange, "Authorization Header is Missing");
         }
         String token = authHeader.substring(7);
         if(!jwtUtil.validateToken(token)) {
-            return unauthorized(exchange);
+            return unauthorized(exchange,"Token is Invalid or Expired");
         }
         String userId = jwtUtil.getUserId(token);
         String role = jwtUtil.getRole(token);
         if(!isAuthorized(role, path, method)) {
-            return forbidden(exchange);
+            return forbidden(exchange,"Permission Denied: you are not authorized to access this resource");
         }
         ServerHttpRequest modifiedRequest = exchange.getRequest().mutate().header("X-User-Id", userId).header("X-User-Role", role).build();
         return chain.filter(exchange.mutate().request(modifiedRequest).build());
     }
 
-    private Mono<Void> forbidden(ServerWebExchange exchange) {
+    private Mono<Void> forbidden(ServerWebExchange exchange, String message) {
         exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-        return exchange.getResponse().setComplete();
+        exchange.getResponse().getHeaders().add("Content-Type", "application/json");
+        String body = """
+                {
+                "status":403,
+                "error":"Forbidden",
+                "message":"%s"
+                }
+                """.formatted(message);
+        DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(body.getBytes(StandardCharsets.UTF_8));
+        return exchange.getResponse().writeWith(Mono.just(buffer));
     }
 
     @Override
@@ -62,13 +73,22 @@ public class JwtGatewayFilter implements GlobalFilter, Ordered {
         return -1;
     }
 
-    private Mono<Void> unauthorized(ServerWebExchange exchange) {
+    private Mono<Void> unauthorized(ServerWebExchange exchange, String message) {
         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-        return exchange.getResponse().setComplete();
+        exchange.getResponse().getHeaders().add("Content-Type", "application/json");
+        String body = """
+                {
+                "status":401,
+                "error":"Unauthorized",
+                "message":"%s"
+                }
+                """.formatted(message);
+        DataBuffer buffer = exchange.getResponse().bufferFactory().wrap(body.getBytes(StandardCharsets.UTF_8));
+        return exchange.getResponse().writeWith(Mono.just(buffer));
     }
 
     private static final Map<String, Map<String, List<String>>> ROLE_BASED_PERMISSIONS = Map.of(
-            "ADMIN", Map.of(
+            "ROLE_ADMIN", Map.of(
                     "GET", List.of("/api/products", "/api/category", "/api/orders", "/api/payments", "/api/users"),
                     "POST", List.of("/api/products", "/api/category", "/api/inventory"),
                     "PUT", List.of("/api/products", "/api/category", "/api/payments"),

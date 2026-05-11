@@ -40,7 +40,7 @@ public class ProductController {
         return ResponseEntity.ok(productService.getAllProducts(page, size, sortBy, sortingDir));
     }
     @GetMapping("/search")
-    public ResponseEntity<Page<ProductDto>> searchProducts(String keyword, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+    public ResponseEntity<Page<ProductDto>> searchProducts(@RequestParam String keyword, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
        return ResponseEntity.ok(productService.searchProduct(keyword,page,size));
     }
     @GetMapping("/filter")
