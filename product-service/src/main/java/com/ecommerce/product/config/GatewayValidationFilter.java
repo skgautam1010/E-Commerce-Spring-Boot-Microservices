@@ -16,9 +16,14 @@ public class GatewayValidationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+
+        if(request.getRequestURI().startsWith("/products/images")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         // Check for the header your Gateway injects
         String userRole = request.getHeader("X-User-Role");
-
         // If the header is missing, it means the request bypassed the Gateway
         if (userRole == null || userRole.isBlank()) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);

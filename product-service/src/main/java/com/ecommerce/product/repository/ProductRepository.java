@@ -13,10 +13,13 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findByNameContainingIgnoreCase(String keyword, Pageable pageable);
     Page<Product> findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String nameKeyword, String descriptionKeyword, Pageable pageable);
 
-    @Query("SELECT p from Product p " +
-    "WHERE (:keyword is NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%',:keyword,'%'))) " +
-            "AND (:categoryId is NULL OR p.category.id= :categoryId) " +
-    "AND (p.price BETWEEN :minPrice AND :maxPrice)")
+    @Query("""
+        select p from Product p
+                WHERE (:keyword IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
+                        AND(:categoryId IS NULL OR p.category.id = :categoryId)
+                                AND(:minPrice is NULL OR p.discountedPrice >= :minPrice)
+                                        AND(:maxPrice is NULL OR p.discountedPrice <= :maxPrice)
+        """)
     Page<Product> advanceFilter(@Param("keyword") String keyword,
                                 @Param("categoryId") Long categoryId, @Param("minPrice") Double minPrice,
                                 @Param("maxPrice") Double maxPrice, Pageable pageable);

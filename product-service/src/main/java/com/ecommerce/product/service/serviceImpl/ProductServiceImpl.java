@@ -92,15 +92,15 @@ public class ProductServiceImpl implements ProductService {
         if(multipartFile.getSize() > MAX_SIZE) {
             throw new RuntimeException("Image File exceeds max size of 2 mb");
         }
-        List<String> allowedFileTypes = List.of("image/jpeg","image/png","image/jpg");
+        List<String> allowedFileTypes = List.of("image/jpeg","image/png","image/jpg","image/webp");
         if(!allowedFileTypes.contains(multipartFile.getContentType())) {
-            throw new RuntimeException("Image file must be of either PNG, JPG or JPEG Type");
+            throw new RuntimeException("Image file must be of either PNG, JPG, JPEG or WEBP Type");
         }
         String originalFileName = multipartFile.getOriginalFilename();
         if(originalFileName == null || !originalFileName.contains(".")) {
             throw new RuntimeException("Invalid File Name");
         }
-        List<String> allowedExt = List.of("png", "jpg", "jpeg");
+        List<String> allowedExt = List.of("png", "jpg", "jpeg", "webp");
         String extension = originalFileName.substring(originalFileName.lastIndexOf(".") + 1).toLowerCase(Locale.ROOT);
         if(!allowedExt.contains(extension)) {
             throw new RuntimeException("Invalid Image extension");
@@ -109,7 +109,7 @@ public class ProductServiceImpl implements ProductService {
         if(!folder.exists()) {
             folder.mkdirs();
         }
-        String fileName = UUID.randomUUID().toString() + "." + extension;
+        String fileName = product.getId() + "-" + UUID.randomUUID().toString() + "." + extension;
         Path filePath = Paths.get(UPLOAD_DIR + fileName);
         Files.write(filePath, multipartFile.getBytes());
         String imageUrl = "/products/images/" + fileName;
