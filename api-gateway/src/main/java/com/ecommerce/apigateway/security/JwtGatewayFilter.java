@@ -34,7 +34,7 @@ public class JwtGatewayFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
         String method = exchange.getRequest().getMethod().name();
-        if(PUBLIC_URLS.stream().anyMatch(path :: contains)) {
+        if(PUBLIC_URLS.stream().anyMatch(path :: startsWith)) {
             return chain.filter(exchange);
         }
         String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
@@ -89,14 +89,14 @@ public class JwtGatewayFilter implements GlobalFilter, Ordered {
 
     private static final Map<String, Map<String, List<String>>> ROLE_BASED_PERMISSIONS = Map.of(
             "ROLE_ADMIN", Map.of(
-                    "GET", List.of("/api/products", "/api/category", "/api/orders", "/api/payments", "/api/users"),
-                    "POST", List.of("/api/products", "/api/category", "/api/inventory"),
+                    "GET", List.of("/api/products", "/api/category", "/api/orders", "/api/payments", "/api/users","/api/inventory"),
+                    "POST", List.of("/api/products", "/api/category", "/api/inventory", "/api/orders"),
                     "PUT", List.of("/api/products", "/api/category", "/api/payments"),
                     "DELETE", List.of("/api/products", "/api/category")
             ),
             "ROLE_USER", Map.of(
                     "GET", List.of("/api/products", "/api/users", "/api/category", "/api/inventory", "/api/payments"),
-                    "POST", List.of("/api/category", "/api/products", "/api/order", "/api/payment")
+                    "POST", List.of("/api/category", "/api/products", "/api/orders", "/api/payment")
             )
     );
 

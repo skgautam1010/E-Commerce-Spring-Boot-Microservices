@@ -1,10 +1,9 @@
-package com.ecommerce.product.config;
+package com.ecommerce.inventory.config;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -13,27 +12,25 @@ import java.io.IOException;
 @Component
 public class GatewayValidationFilter extends OncePerRequestFilter {
 
+
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        String routeHeader = request.getHeader("X-Route-Header");
-        if(request.getRequestURI().startsWith("/products/images") && StringUtils.isNotBlank(routeHeader)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        // Check for the header your Gateway injects
         String userRole = request.getHeader("X-User-Role");
         // If the header is missing, it means the request bypassed the Gateway
-        if (userRole == null || userRole.isBlank()) {
+        String internalService = request.getHeader("X-Internal-Service");
+        boolean gatewayRequest =
+                userRole != null && !userRole.isBlank();
+
+        boolean internalRequest =
+                internalService != null && !internalService.isBlank();
+
+        if (!gatewayRequest && !internalRequest) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.setContentType("application/json");
             response.getWriter().write("{\"error\": \"Direct access forbidden. Please use the API Gateway.\"}");
             return;
         }
-
-        // If header exists, move to the next filter in the chain
         filterChain.doFilter(request, response);
     }
 }

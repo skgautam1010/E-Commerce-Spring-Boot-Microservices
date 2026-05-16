@@ -14,6 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;import org.springfra
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtAuthenticationFilter authenticationFilter;
+    private final GatewayValidationFilter gatewayValidationFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder () {
@@ -25,7 +26,7 @@ public class SecurityConfig {
         httpSecurity.csrf(csrf -> csrf.disable())
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/api/users/register","/api/users/login","/actuator/**").permitAll()
-                        .anyRequest().authenticated()).addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                        .anyRequest().authenticated()).addFilterBefore(gatewayValidationFilter, UsernamePasswordAuthenticationFilter.class).addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return httpSecurity.build();
     }
 }
