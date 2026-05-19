@@ -13,7 +13,7 @@ public class OrderEventConsumer {
         this.inventoryService = inventoryService;
     }
 
-    @KafkaListener(topics = "order-event", groupId = "inventory-group")
+    @KafkaListener(topics = "order-events", groupId = "inventory-group")
     public void consumer(OrderPlacedEvent event) {
         inventoryService.updateInventory(event);
     }

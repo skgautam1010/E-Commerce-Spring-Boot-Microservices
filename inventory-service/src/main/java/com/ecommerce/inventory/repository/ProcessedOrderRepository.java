@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ProcessedOrderRepository extends JpaRepository<ProcessedOrder, Long> {
-    boolean findByOrderId(String orderId);
+    boolean existsByOrderId(String orderId);
 }

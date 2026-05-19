@@ -13,6 +13,6 @@ public class OrderEventProducer {
     }
 
     public void sendOrderEvent(OrderPlacedEvent event) {
-        kafkaTemplate.send("order-event", event.getOrderId(), event);
+        kafkaTemplate.send("order-events", event.getOrderId(), event);
     }
 }

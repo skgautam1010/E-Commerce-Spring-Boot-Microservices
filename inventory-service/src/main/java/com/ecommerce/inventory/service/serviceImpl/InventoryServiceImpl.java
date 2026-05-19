@@ -14,6 +14,8 @@ import com.ecommerce.inventory.repository.ProcessedOrderRepository;
 import com.ecommerce.inventory.service.InventoryService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -24,6 +26,7 @@ public class InventoryServiceImpl implements InventoryService {
     private final InventoryRepository inventoryRepository;
     private final InventoryMapper inventoryMapper;
     private final ProcessedOrderRepository processedOrderRepository;
+    private static final Logger log = LoggerFactory.getLogger(InventoryServiceImpl.class);
 
     @Override
     public InventoryResponseDto checkInventory(String skuCode) {
@@ -40,7 +43,9 @@ public class InventoryServiceImpl implements InventoryService {
     @Transactional
     @Override
     public void updateInventory(OrderPlacedEvent event) {
-        if(processedOrderRepository.findByOrderId(event.getOrderId())) {
+        log.info("Order Reached Inventory: {}", event);
+        if(processedOrderRepository.existsByOrderId(event.getOrderId())) {
+            log.info("Already Processed this order: {}", event.getOrderId());
             return;
         }
         Inventory inventory =  inventoryRepository.findBySkuCode(event.getSkuCode()).orElseThrow(() -> new InventoryException("Not Found" + event.getSkuCode()));

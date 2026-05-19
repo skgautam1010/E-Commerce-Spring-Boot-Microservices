@@ -19,7 +19,7 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String orderNumber;
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String skuCode;
     @Column(nullable = false)
     private Integer quantity;
