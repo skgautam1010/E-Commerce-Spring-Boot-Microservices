@@ -6,9 +6,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 @FeignClient(name = "order-service")
 public interface OrderClient {
-    @PostMapping("/api/order/{orderId}/confirm")
+    @PostMapping("/api/orders/{orderId}/confirm")
     void confirmOrder(@PathVariable String orderId);
 
-    @PostMapping("/api/order/{orderId}/fail")
+    @PostMapping("/api/orders/{orderId}/fail")
     void failedOrder(@PathVariable String orderId);
 }
