@@ -43,7 +43,6 @@ public class InventoryServiceImpl implements InventoryService {
     @Transactional
     @Override
     public void updateInventory(OrderPlacedEvent event) {
-        log.info("Order Reached Inventory: {}", event);
         if(processedOrderRepository.existsByOrderId(event.getOrderId())) {
             log.info("Already Processed this order: {}", event.getOrderId());
             return;
