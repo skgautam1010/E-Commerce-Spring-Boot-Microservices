@@ -13,5 +13,6 @@ public class InventoryResponseDto {
     private String skuCode;
     private boolean inStock;
     private Integer availableQuantity;
+    private Long productId;
 
 }

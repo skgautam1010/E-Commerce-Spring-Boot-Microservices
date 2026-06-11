@@ -10,13 +10,12 @@ public class ProductMapper {
 
     public ProductDto toDto(Product product) {
         return ProductDto.builder().id(product.getId()).name(product.getName()).description(product.getDescription())
-                .price(product.getPrice()).discountedPrice(product.getDiscountedPrice()).quantity(product.getQuantity())
-                .brand(product.getBrand()).imageUrl(product.getImageUrl()).categoryId(
+                .price(product.getPrice()).discountedPrice(product.getDiscountedPrice()).brand(product.getBrand()).imageUrl(product.getImageUrl()).categoryId(
                         product.getCategory() != null ? product.getCategory().getId() : null).build();
     }
     public Product toEntity(ProductDto dto, Category category) {
         return Product.builder().name(dto.getName()).description(dto.getDescription()).price(dto.getPrice())
-                .discountedPrice(dto.getDiscountedPrice()).quantity(dto.getQuantity()).brand(dto.getBrand()).imageUrl(dto.getImageUrl())
+                .discountedPrice(dto.getDiscountedPrice()).brand(dto.getBrand()).imageUrl(dto.getImageUrl())
                 .category(category).build();
     }
 }

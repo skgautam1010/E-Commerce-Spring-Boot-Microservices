@@ -17,4 +17,6 @@ public class InventoryRequestDto {
     private String skuCode;
     @Min(value = 0 , message = "Quantity must be 0 or more")
     private Integer quantity;
+    @NotBlank(message = "Product Id cannot be Blank")
+    private Long productId;
 }

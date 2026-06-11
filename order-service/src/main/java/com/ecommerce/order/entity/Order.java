@@ -1,5 +1,6 @@
 package com.ecommerce.order.entity;
 
+import com.ecommerce.order.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,6 +24,9 @@ public class Order {
     private String skuCode;
     @Column(nullable = false)
     private Integer quantity;
-    private BigDecimal price;
-    private String orderStatus;
+    private Long productId;
+    private BigDecimal unitPrice;
+    private BigDecimal totalAmount;
+    @Enumerated(EnumType.STRING)
+    private OrderStatus orderStatus;
 }

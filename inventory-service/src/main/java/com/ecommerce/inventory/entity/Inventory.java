@@ -20,5 +20,7 @@ public class Inventory {
     private String skuCode;
     @Column(nullable = false)
     private Integer quantity;
+    @Column(unique = true, nullable = false)
+    private Long productId;
 
 }

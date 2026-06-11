@@ -12,11 +12,10 @@ public class OrderMapper {
         Order order = new Order();
         order.setSkuCode(dto.getSkuCode());
         order.setQuantity(dto.getQuantity());
-        order.setPrice(dto.getPrice());
         return order;
     }
 
     public OrderResponseDto toDto(Order order) {
-        return new OrderResponseDto(order.getOrderNumber(), order.getOrderStatus());
+        return new OrderResponseDto(order.getOrderNumber(), order.getOrderStatus(), order.getTotalAmount());
     }
 }

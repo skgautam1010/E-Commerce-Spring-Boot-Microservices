@@ -22,8 +22,6 @@ public class ProductDto {
     @Positive(message = "Price must be positive")
     private double price;
     private double discountedPrice;
-    @Min(value = 0, message = "Quantity must be 0 or more")
-    private int quantity;
     private String brand;
     private String imageUrl;
     @NotNull(message = "Category Id is required")

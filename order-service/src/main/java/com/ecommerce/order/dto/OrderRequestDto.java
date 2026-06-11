@@ -12,8 +12,8 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderRequestDto {
-    @NotNull(message = "Price is Mandatory")
-    private BigDecimal price;
+    @NotNull(message = "Expected Amount is Mandatory")
+    private BigDecimal expectedAmount;
     @NotNull
     private String skuCode;
     @Min(value=1, message = "Quantity Must be atleast 1")

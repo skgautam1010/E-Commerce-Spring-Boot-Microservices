@@ -27,7 +27,6 @@ public class Product {
     @Column(nullable = false)
     private double price;
     private double discountedPrice;
-    private int quantity;
     private String brand;
     private String imageUrl;
     @ManyToOne(fetch = FetchType.LAZY)

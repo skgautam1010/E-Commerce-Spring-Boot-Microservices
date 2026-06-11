@@ -7,9 +7,10 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class InventoryResponseDto {
-    private String skuCode;
-    private boolean inStock;
-    private Integer availableQuantity;
-    private Long productId;
+public class ProductResponseDto {
+    private Long id;
+    private String name;
+    private double price;
+    private double discountedPrice;
+    private String brand;
 }
