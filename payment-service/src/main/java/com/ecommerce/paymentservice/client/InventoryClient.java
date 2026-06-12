@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 @FeignClient(name = "inventory-service")
 public interface InventoryClient {
 
-    @PostMapping("/api/inventory/{orderId}/commit")
-    void commitInventory(@PathVariable String orderId);
+    @PostMapping("/api/inventory/{orderNumber}/commit")
+    void commitInventory(@PathVariable String orderNumber);
 
-     @PostMapping("/api/inventory/{orderId}/rollback")
-    void rollbackInventory(@PathVariable String orderId);
+     @PostMapping("/api/inventory/{orderNumber}/rollback")
+    void rollbackInventory(@PathVariable String orderNumber);
 }

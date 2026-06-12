@@ -11,8 +11,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class OrderPlacedEvent {
     private String eventId;
-    private String orderId;
+    private String orderNumber;
     private String skuCode;
     private Integer quantity;
+    private String eventType;
     private LocalDateTime eventTime;
 }

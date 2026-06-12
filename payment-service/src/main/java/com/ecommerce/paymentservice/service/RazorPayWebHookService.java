@@ -47,16 +47,16 @@ public class RazorPayWebHookService {
         Payment payment = paymentRespository.findByTransactionId(razorPayOrderId).orElseThrow(() -> new IllegalStateException("Payment Not Found for RazorPay Order Id"));
         payment.setPaymentStatus(PaymentStatus.SUCCESS);
         payment.setGatewayPaymentId(razorPayPaymentId);
-        orderClient.confirmOrder(payment.getOrderId());
-        inventoryClient.commitInventory(payment.getOrderId());
+        orderClient.confirmOrder(payment.getOrderNumber());
+        inventoryClient.commitInventory(payment.getOrderNumber());
     }
     private void handlePaymentFailure(JSONObject event) {
         JSONObject paymentEntity = extractPaymentEntity(event);
         String razorPayOrderId = paymentEntity.getString("order_id");
         Payment payment = paymentRespository.findByTransactionId(razorPayOrderId).orElseThrow(() -> new IllegalStateException("Payment Not Found for RazorPay Order Id"));
         payment.setPaymentStatus(PaymentStatus.FAILED);
-        orderClient.failedOrder(payment.getOrderId());
-        inventoryClient.rollbackInventory(payment.getOrderId());
+        orderClient.failOrder(payment.getOrderNumber());
+        inventoryClient.rollbackInventory(payment.getOrderNumber());
     }
 
     private JSONObject extractPaymentEntity(JSONObject event) {

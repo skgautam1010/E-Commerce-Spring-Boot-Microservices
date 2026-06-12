@@ -11,12 +11,12 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "processed_order", uniqueConstraints = @UniqueConstraint(columnNames = "orderId"))
+@Table(name = "processed_order", uniqueConstraints = @UniqueConstraint(columnNames = "orderNumber"))
 public class ProcessedOrder {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(nullable = false, unique = true)
-    private String orderId;
+    private String orderNumber;
     private LocalDateTime processedAt;
 }

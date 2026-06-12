@@ -4,6 +4,7 @@ import com.ecommerce.paymentservice.dto.PaymentRequestDto;
 import com.ecommerce.paymentservice.dto.PaymentResponseDto;
 import com.ecommerce.paymentservice.dto.PaymentStatusUpdateRequest;
 import com.ecommerce.paymentservice.service.PaymentService;
+import com.razorpay.RazorpayException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,13 +19,13 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping("/create")
-    public ResponseEntity<PaymentResponseDto> createPayment(@RequestBody @Valid PaymentRequestDto requestDto) {
+    public ResponseEntity<PaymentResponseDto> createPayment(@RequestBody @Valid PaymentRequestDto requestDto) throws RazorpayException {
         return ResponseEntity.status(HttpStatus.CREATED).body(paymentService.createPayment(requestDto));
     }
 
-    @GetMapping("/order/{orderId}")
-    public ResponseEntity<PaymentResponseDto> getPaymentByOrderId(@PathVariable String orderId) {
-        return ResponseEntity.ok(paymentService.getPaymentByOrderId(orderId));
+    @GetMapping("/order/{orderNumber}")
+    public ResponseEntity<PaymentResponseDto> getPaymentByOrderNumber(@PathVariable String orderNumber) {
+        return ResponseEntity.ok(paymentService.getPaymentByOrderNumber(orderNumber));
     }
 
     @PutMapping("/{paymentId}/status")
@@ -32,4 +33,13 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.updatePaymentStatus(paymentId, request));
     }
 
+    @PostMapping("/{paymentId}/success")
+    public ResponseEntity<PaymentResponseDto> markSuccess(@PathVariable Long paymentId) {
+        return ResponseEntity.ok(paymentService.markPaymentSuccess(paymentId));
+    }
+
+    @PostMapping("/{paymentId}/fail")
+    public ResponseEntity<PaymentResponseDto> markFailure(@PathVariable Long paymentId) {
+        return ResponseEntity.ok(paymentService.markPaymentFailure(paymentId));
+    }
 }

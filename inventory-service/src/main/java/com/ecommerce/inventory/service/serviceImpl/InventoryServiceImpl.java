@@ -3,14 +3,12 @@ package com.ecommerce.inventory.service.serviceImpl;
 
 
 import com.ecommerce.inventory.dto.InventoryRequestDto;
+import com.ecommerce.inventory.dto.InventoryReservationRequest;
 import com.ecommerce.inventory.dto.InventoryResponseDto;
 import com.ecommerce.inventory.entity.Inventory;
-import com.ecommerce.inventory.entity.ProcessedOrder;
-import com.ecommerce.inventory.event.OrderPlacedEvent;
 import com.ecommerce.inventory.exceptions.InventoryException;
 import com.ecommerce.inventory.mapper.InventoryMapper;
 import com.ecommerce.inventory.repository.InventoryRepository;
-import com.ecommerce.inventory.repository.ProcessedOrderRepository;
 import com.ecommerce.inventory.service.InventoryService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -18,14 +16,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
 public class InventoryServiceImpl implements InventoryService {
     private final InventoryRepository inventoryRepository;
     private final InventoryMapper inventoryMapper;
-    private final ProcessedOrderRepository processedOrderRepository;
     private static final Logger log = LoggerFactory.getLogger(InventoryServiceImpl.class);
 
     @Override
@@ -40,24 +36,49 @@ public class InventoryServiceImpl implements InventoryService {
         inventoryRepository.save(inventory);
     }
 
-    @Transactional
     @Override
-    public void updateInventory(OrderPlacedEvent event) {
-        if(processedOrderRepository.existsByOrderId(event.getOrderId())) {
-            log.info("Already Processed this order: {}", event.getOrderId());
-            return;
+    @Transactional
+    public void reserveStock(InventoryReservationRequest reservationRequest) {
+        Inventory inventory = inventoryRepository.findBySkuCodeForUpdate(reservationRequest.getSkuCode()).orElseThrow(() -> new InventoryException("Inventory not found for sku : " + reservationRequest.getSkuCode()));
+        int availableQuantity = inventory.getQuantity() - inventory.getReservedQuantity();
+        if(availableQuantity < reservationRequest.getQuantity()) {
+            throw new RuntimeException("Insufficient stock available");
         }
-        Inventory inventory =  inventoryRepository.findBySkuCode(event.getSkuCode()).orElseThrow(() -> new InventoryException("Not Found" + event.getSkuCode()));
-        Integer availableQuantity = inventory.getQuantity();
-        Integer orderQuantity = event.getQuantity();
-        if(availableQuantity < orderQuantity) {
-            throw new RuntimeException("Insufficient Stock for SKU Code");
-        }
-        inventory.setQuantity(availableQuantity - orderQuantity);
-        inventoryRepository.save(inventory);
-        ProcessedOrder processedOrder = new ProcessedOrder();
-        processedOrder.setOrderId(event.getOrderId());
-        processedOrder.setProcessedAt(LocalDateTime.now());
-        processedOrderRepository.save(processedOrder);
+        inventory.setReservedQuantity(inventory.getReservedQuantity() + reservationRequest.getQuantity());
     }
+
+    @Override
+    public void confirmReservation(InventoryReservationRequest request) {
+        Inventory inventory = inventoryRepository.findBySkuCodeForUpdate(request.getSkuCode()).orElseThrow(() ->
+                        new InventoryException(
+                               "Inventory Not Found: " +  request.getSkuCode()
+                        ));
+
+        if(inventory.getReservedQuantity() < request.getQuantity()) {
+            throw new RuntimeException("Reserved quantity is insufficient");
+        }
+
+        inventory.setQuantity(inventory.getQuantity() - request.getQuantity());
+        inventory.setReservedQuantity(inventory.getReservedQuantity() - request.getQuantity());
+        inventoryRepository.save(inventory);
+    }
+
+    @Override
+    public void releaseReservation(InventoryReservationRequest request) {
+
+        Inventory inventory = inventoryRepository
+                .findBySkuCodeForUpdate(request.getSkuCode())
+                .orElseThrow(() ->
+                        new InventoryException(
+                               "Inventory Not Found: " + request.getSkuCode()
+                        ));
+
+        if(inventory.getReservedQuantity() < request.getQuantity()) {
+            throw new RuntimeException("Reserved quantity is insufficient");
+        }
+
+        inventory.setReservedQuantity(inventory.getReservedQuantity() - request.getQuantity());
+        inventoryRepository.save(inventory);
+    }
+
 }

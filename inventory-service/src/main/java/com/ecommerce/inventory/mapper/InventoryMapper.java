@@ -8,9 +8,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class InventoryMapper {
     public Inventory toEntity(InventoryRequestDto dto) {
-        return Inventory.builder().skuCode(dto.getSkuCode()).quantity(dto.getQuantity()).productId(dto.getProductId()).build();
+        return Inventory.builder().skuCode(dto.getSkuCode()).quantity(dto.getQuantity()).reservedQuantity(0).productId(dto.getProductId()).build();
     }
     public InventoryResponseDto toDto(Inventory inventory) {
-        return InventoryResponseDto.builder().productId(inventory.getProductId()).skuCode(inventory.getSkuCode()).inStock(inventory.getQuantity() > 0).availableQuantity(inventory.getQuantity()).build();
+        int availableQuantity = inventory.getQuantity() - inventory.getReservedQuantity();
+        return InventoryResponseDto.builder().productId(inventory.getProductId()).skuCode(inventory.getSkuCode()).inStock(availableQuantity > 0).availableQuantity(availableQuantity).build();
     }
 }

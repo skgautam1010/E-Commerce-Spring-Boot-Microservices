@@ -23,4 +23,16 @@ public class OrderController {
     public ResponseEntity<OrderResponseDto> getOrder(@PathVariable String orderNumber) {
         return ResponseEntity.ok(orderService.getOrderByOrderNumber(orderNumber));
     }
+
+    @PostMapping("/{orderNumber}/confirm")
+    public ResponseEntity<String> confirmOrder(@PathVariable String orderNumber) {
+        orderService.confirmOrder(orderNumber);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body("Order Is Placed");
+    }
+
+    @PostMapping("/{orderNumber}/fail")
+    public ResponseEntity<String> failOrder(@PathVariable String orderNumber) {
+        orderService.failOrder(orderNumber);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body("Order Failed");
+    }
 }

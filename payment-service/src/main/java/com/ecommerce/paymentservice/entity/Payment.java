@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 @Table(name = "payment", indexes = {
-        @Index(columnList = "orderId"),
+        @Index(columnList = "orderNumber"),
         @Index(columnList = "transactionId")
 })
 public class Payment {
@@ -25,7 +25,7 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(nullable = false)
-    private String orderId;
+    private String orderNumber;
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
     @Enumerated(EnumType.STRING)

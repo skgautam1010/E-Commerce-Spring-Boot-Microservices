@@ -22,5 +22,7 @@ public class Inventory {
     private Integer quantity;
     @Column(unique = true, nullable = false)
     private Long productId;
+    @Column(nullable = false)
+    private Integer reservedQuantity;
 
 }

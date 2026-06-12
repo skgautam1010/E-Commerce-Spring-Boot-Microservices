@@ -9,11 +9,11 @@ import org.springframework.stereotype.Component;
 public class PaymentMapper {
 
     public Payment toEntity(PaymentRequestDto dto) {
-        return Payment.builder().orderId(dto.getOrderId()).amount(dto.getAmount()).paymentMethod(dto.getPaymentMethod()).build();
+        return Payment.builder().orderNumber(dto.getOrderNumber()).paymentMethod(dto.getPaymentMethod()).build();
     }
 
     public PaymentResponseDto toDto(Payment payment) {
-        return PaymentResponseDto.builder().orderId(payment.getOrderId()).paymentId(payment.getId()).amount(payment.getAmount())
+        return PaymentResponseDto.builder().orderNumber(payment.getOrderNumber()).paymentId(payment.getId()).amount(payment.getAmount())
                 .transactionId(payment.getTransactionId()).paymentStatus(payment.getPaymentStatus()).build();
     }
 }
