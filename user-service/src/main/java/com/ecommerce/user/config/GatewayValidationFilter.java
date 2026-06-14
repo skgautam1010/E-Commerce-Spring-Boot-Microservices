@@ -26,15 +26,18 @@ public class GatewayValidationFilter extends OncePerRequestFilter {
         }
 
         String userRole = request.getHeader("X-User-Role");
+        // If the header is missing, it means the request bypassed the Gateway
+        String internalService = request.getHeader("X-Internal-Service");
+        boolean gatewayRequest =
+                userRole != null && !userRole.isBlank();
 
-        if (StringUtils.isBlank(userRole)) {
+        boolean internalRequest =
+                internalService != null && !internalService.isBlank();
+
+        if (!gatewayRequest && !internalRequest) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.setContentType("application/json");
-            response.getWriter().write("""
-                {
-                    "error":"Direct access forbidden. Use API Gateway."
-                }
-            """);
+            response.getWriter().write("{\"error\": \"Direct access forbidden. Please use the API Gateway.\"}");
             return;
         }
         filterChain.doFilter(request, response);

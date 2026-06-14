@@ -16,4 +16,5 @@ public class GatewayOrderResponse {
     private BigDecimal amount;
     private String status;
     private String gatewayName;
+    private String receipt;
 }

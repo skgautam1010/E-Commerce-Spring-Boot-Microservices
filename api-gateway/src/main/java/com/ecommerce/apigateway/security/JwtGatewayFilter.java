@@ -26,7 +26,8 @@ public class JwtGatewayFilter implements GlobalFilter, Ordered {
     private static final List<String> PUBLIC_URLS = List.of(
             "/api/users/register",
             "/api/users/login",
-            "/products/images"
+            "/products/images",
+            "/api/payments/webhook/razorpay"
     );
 
 

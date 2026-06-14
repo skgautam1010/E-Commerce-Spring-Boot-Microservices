@@ -18,13 +18,14 @@ import java.time.LocalDateTime;
 @Builder
 @Table(name = "payment", indexes = {
         @Index(columnList = "orderNumber"),
-        @Index(columnList = "transactionId")
+        @Index(columnList = "gatewayOrderId"),
+        @Index(columnList = "paymentReference")
 })
 public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String orderNumber;
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
@@ -35,10 +36,14 @@ public class Payment {
     @Column(nullable = false)
     private PaymentMethod paymentMethod;
     @Column(nullable = false, unique = true)
-    private String transactionId;
+    private String gatewayOrderId;
     private String gatewayPaymentId;
+    @Column(nullable = false, unique = true)
+    private String paymentReference;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime paidAt;
+    private LocalDateTime failedAt;
 
     @PrePersist
     public void onCreate() {

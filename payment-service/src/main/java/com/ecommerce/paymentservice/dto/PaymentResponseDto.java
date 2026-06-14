@@ -16,6 +16,6 @@ public class PaymentResponseDto {
     private Long paymentId;
     private String orderNumber;
     private BigDecimal amount;
-    private String transactionId;
+    private String gatewayOrderId;
     private PaymentStatus paymentStatus;
 }

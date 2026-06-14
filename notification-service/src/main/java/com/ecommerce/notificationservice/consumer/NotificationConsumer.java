@@ -1,6 +1,6 @@
 package com.ecommerce.notificationservice.consumer;
 
-import com.ecommerce.notificationservice.dto.NotificationEvent;
+import com.ecommerce.notificationservice.event.NotificationEvent;
 import com.ecommerce.notificationservice.service.EmailService;
 import com.ecommerce.notificationservice.service.SmsService;
 import lombok.RequiredArgsConstructor;

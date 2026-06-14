@@ -15,8 +15,8 @@ public class OrderController {
     private final OrderService orderService;
 
     @PostMapping("/create")
-    public ResponseEntity<OrderResponseDto> placeOrder(@RequestBody OrderRequestDto dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.placeOrder(dto));
+    public ResponseEntity<OrderResponseDto> placeOrder(@RequestHeader("X-User-Id") Long userId, @RequestBody OrderRequestDto dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.placeOrder(dto, userId));
     }
 
     @GetMapping("/{orderNumber}")
@@ -27,12 +27,12 @@ public class OrderController {
     @PostMapping("/{orderNumber}/confirm")
     public ResponseEntity<String> confirmOrder(@PathVariable String orderNumber) {
         orderService.confirmOrder(orderNumber);
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body("Order Is Placed");
+        return ResponseEntity.ok("Order Is Placed");
     }
 
     @PostMapping("/{orderNumber}/fail")
     public ResponseEntity<String> failOrder(@PathVariable String orderNumber) {
         orderService.failOrder(orderNumber);
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body("Order Failed");
+        return ResponseEntity.ok("Order Failed");
     }
 }

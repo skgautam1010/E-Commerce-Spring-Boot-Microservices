@@ -15,7 +15,11 @@ public class GatewayValidationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String userRole = request.getHeader("X-User-Role");
-
+        String routeHeader = request.getHeader("X-Route-Header");
+        if(request.getRequestURI().contains("/webhook/razorpay") && StringUtils.isNotBlank(routeHeader)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
         if(StringUtils.isBlank(userRole)) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.setContentType("application/json");

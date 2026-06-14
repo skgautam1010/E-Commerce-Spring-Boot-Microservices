@@ -13,13 +13,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.ecommerce.paymentservice.entity.Payment;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class RazorPayWebHookService {
     private final PaymentRespository paymentRespository;
     private final OrderClient orderClient;
-    private final InventoryClient inventoryClient;
+
     @Value("${razorpay.webhook-secret}")
     private String webHookSecret;
 
@@ -44,19 +46,14 @@ public class RazorPayWebHookService {
         JSONObject paymentEntity = extractPaymentEntity(event);
         String razorPayOrderId = paymentEntity.getString("order_id");
         String razorPayPaymentId = paymentEntity.getString("id");
-        Payment payment = paymentRespository.findByTransactionId(razorPayOrderId).orElseThrow(() -> new IllegalStateException("Payment Not Found for RazorPay Order Id"));
-        payment.setPaymentStatus(PaymentStatus.SUCCESS);
-        payment.setGatewayPaymentId(razorPayPaymentId);
-        orderClient.confirmOrder(payment.getOrderNumber());
-        inventoryClient.commitInventory(payment.getOrderNumber());
+        Payment payment = paymentRespository.findByGatewayOrderId(razorPayOrderId).orElseThrow(() -> new IllegalStateException("Payment Not Found for RazorPay Order Id"));
+        markPaymentSuccess(payment, razorPayPaymentId);
     }
     private void handlePaymentFailure(JSONObject event) {
         JSONObject paymentEntity = extractPaymentEntity(event);
         String razorPayOrderId = paymentEntity.getString("order_id");
-        Payment payment = paymentRespository.findByTransactionId(razorPayOrderId).orElseThrow(() -> new IllegalStateException("Payment Not Found for RazorPay Order Id"));
-        payment.setPaymentStatus(PaymentStatus.FAILED);
-        orderClient.failOrder(payment.getOrderNumber());
-        inventoryClient.rollbackInventory(payment.getOrderNumber());
+        Payment payment = paymentRespository.findByGatewayOrderId(razorPayOrderId).orElseThrow(() -> new IllegalStateException("Payment Not Found for RazorPay Order Id"));
+        markPaymentFailure(payment);
     }
 
     private JSONObject extractPaymentEntity(JSONObject event) {
@@ -70,6 +67,35 @@ public class RazorPayWebHookService {
             log.error("Invalid RazorPay Webhook Signature");
             throw new SecurityException("Invalid RazorPay Webhook Signature");
         }
+    }
+
+    public void markPaymentSuccess(Payment payment, String razorPayPaymentId) {
+
+        if(payment.getPaymentStatus() == PaymentStatus.SUCCESS) {
+            log.info("Payment Already Processed");
+            return;
+        }
+        payment.setPaymentStatus(PaymentStatus.SUCCESS);
+        payment.setGatewayPaymentId(razorPayPaymentId);
+        payment.setPaidAt(LocalDateTime.now());
+
+        paymentRespository.save(payment);
+
+        orderClient.confirmOrder(payment.getOrderNumber());
+    }
+
+
+    public void markPaymentFailure(Payment payment) {
+
+        if(payment.getPaymentStatus() == PaymentStatus.FAILED) {
+            log.info("Payment Already Processed and it failed");
+            return;
+        }
+        payment.setPaymentStatus(PaymentStatus.FAILED);
+        payment.setFailedAt(LocalDateTime.now());
+        paymentRespository.save(payment);
+
+        orderClient.failOrder(payment.getOrderNumber());
     }
 
 }
