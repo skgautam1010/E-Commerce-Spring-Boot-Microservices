@@ -42,4 +42,10 @@ public class UserController {
         UserResponseDto res = userService.getById(id);
         return ResponseEntity.ok(res);
     }
+
+    @GetMapping("/internal/{id}")
+    public ResponseEntity<UserResponseDto> getByUserId(@PathVariable Long id, Authentication authentication) {
+        UserResponseDto res = userService.getById(id);
+        return ResponseEntity.ok(res);
+    }
 }

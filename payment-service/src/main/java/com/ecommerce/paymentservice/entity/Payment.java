@@ -40,6 +40,8 @@ public class Payment {
     private String gatewayPaymentId;
     @Column(nullable = false, unique = true)
     private String paymentReference;
+    @Column(nullable = false)
+    private Long userId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime paidAt;

@@ -1,9 +1,12 @@
 package com.ecommerce.paymentservice.service;
 
 
-import com.ecommerce.paymentservice.client.InventoryClient;
 import com.ecommerce.paymentservice.client.OrderClient;
+import com.ecommerce.paymentservice.client.UserClient;
+import com.ecommerce.paymentservice.dto.UserResponseDto;
 import com.ecommerce.paymentservice.enums.PaymentStatus;
+import com.ecommerce.paymentservice.event.NotificationEvent;
+import com.ecommerce.paymentservice.kafka.NotificationProducer;
 import com.ecommerce.paymentservice.repository.PaymentRespository;
 import com.razorpay.Utils;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +17,7 @@ import org.springframework.stereotype.Service;
 import com.ecommerce.paymentservice.entity.Payment;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +25,8 @@ import java.time.LocalDateTime;
 public class RazorPayWebHookService {
     private final PaymentRespository paymentRespository;
     private final OrderClient orderClient;
+    private final UserClient userClient;
+    private final NotificationProducer notificationProducer;
 
     @Value("${razorpay.webhook-secret}")
     private String webHookSecret;
@@ -69,7 +75,7 @@ public class RazorPayWebHookService {
         }
     }
 
-    public void markPaymentSuccess(Payment payment, String razorPayPaymentId) {
+    private void markPaymentSuccess(Payment payment, String razorPayPaymentId) {
 
         if(payment.getPaymentStatus() == PaymentStatus.SUCCESS) {
             log.info("Payment Already Processed");
@@ -82,10 +88,31 @@ public class RazorPayWebHookService {
         paymentRespository.save(payment);
 
         orderClient.confirmOrder(payment.getOrderNumber());
+        UserResponseDto userResponseDto = userClient.getUserById(payment.getUserId());
+        NotificationEvent event =
+                NotificationEvent.builder()
+                        .eventId(UUID.randomUUID().toString())
+                        .email(userResponseDto.getEmail())
+                        .mobile(userResponseDto.getPhone())
+                        .type("email")
+                        .subject("Payment Successful")
+                        .orderNumber(payment.getOrderNumber())
+                        .amount(payment.getAmount())
+                        .message(
+                                "Your payment of ₹"
+                                        + payment.getAmount()
+                                        + " for order "
+                                        + payment.getOrderNumber()
+                                        + " has been successfully processed."
+                        )
+                        .eventTime(LocalDateTime.now())
+                        .build();
+        notificationProducer.sendNotification(event);
+
     }
 
 
-    public void markPaymentFailure(Payment payment) {
+    private void markPaymentFailure(Payment payment) {
 
         if(payment.getPaymentStatus() == PaymentStatus.FAILED) {
             log.info("Payment Already Processed and it failed");
@@ -96,6 +123,28 @@ public class RazorPayWebHookService {
         paymentRespository.save(payment);
 
         orderClient.failOrder(payment.getOrderNumber());
+
+        UserResponseDto userResponseDto = userClient.getUserById(payment.getUserId());
+        NotificationEvent event =
+                NotificationEvent.builder()
+                        .eventId(UUID.randomUUID().toString())
+                        .email(userResponseDto.getEmail())
+                        .mobile(userResponseDto.getPhone())
+                        .type("email")
+                        .subject("Payment Failed")
+                        .orderNumber(payment.getOrderNumber())
+                        .amount(payment.getAmount())
+                        .message(
+                                "Your payment of ₹"
+                                        + payment.getAmount()
+                                        + " for order "
+                                        + payment.getOrderNumber()
+                                        + " has failed. Please try again."
+                        )
+                        .eventTime(LocalDateTime.now())
+                        .build();
+
+        notificationProducer.sendNotification(event);
     }
 
 }

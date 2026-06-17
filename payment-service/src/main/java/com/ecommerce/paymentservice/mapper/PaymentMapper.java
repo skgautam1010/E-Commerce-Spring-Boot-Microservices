@@ -14,6 +14,6 @@ public class PaymentMapper {
 
     public PaymentResponseDto toDto(Payment payment) {
         return PaymentResponseDto.builder().orderNumber(payment.getOrderNumber()).paymentId(payment.getId()).amount(payment.getAmount())
-                .gatewayOrderId(payment.getGatewayOrderId()).paymentStatus(payment.getPaymentStatus()).build();
+                .gatewayOrderId(payment.getGatewayOrderId()).paymentStatus(payment.getPaymentStatus()).userId(payment.getUserId()).build();
     }
 }

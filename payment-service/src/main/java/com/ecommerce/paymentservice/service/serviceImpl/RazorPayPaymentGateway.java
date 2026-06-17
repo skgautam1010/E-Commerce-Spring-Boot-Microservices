@@ -16,7 +16,6 @@ import java.math.BigDecimal;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Primary
 public class RazorPayPaymentGateway implements PaymentGateway {
 
     private final RazorpayClient razorpayClient;

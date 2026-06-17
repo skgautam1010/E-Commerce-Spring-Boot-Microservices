@@ -16,6 +16,6 @@ public class OrderMapper {
     }
 
     public OrderResponseDto toDto(Order order) {
-        return new OrderResponseDto(order.getOrderNumber(), order.getOrderStatus(), order.getTotalAmount());
+        return new OrderResponseDto(order.getOrderNumber(), order.getOrderStatus(), order.getTotalAmount(), order.getUserId());
     }
 }

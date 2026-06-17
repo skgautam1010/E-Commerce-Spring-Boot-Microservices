@@ -1,11 +1,14 @@
 package com.ecommerce.paymentservice.service.serviceImpl;
 
 import com.ecommerce.paymentservice.client.OrderClient;
+import com.ecommerce.paymentservice.client.UserClient;
 import com.ecommerce.paymentservice.dto.*;
 import com.ecommerce.paymentservice.entity.Payment;
 import com.ecommerce.paymentservice.enums.OrderStatus;
 import com.ecommerce.paymentservice.enums.PaymentStatus;
+import com.ecommerce.paymentservice.event.NotificationEvent;
 import com.ecommerce.paymentservice.exceptions.PaymentNotFoundException;
+import com.ecommerce.paymentservice.kafka.NotificationProducer;
 import com.ecommerce.paymentservice.mapper.PaymentMapper;
 import com.ecommerce.paymentservice.repository.PaymentRespository;
 import com.ecommerce.paymentservice.service.PaymentGateway;
@@ -18,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +32,9 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentMapper paymentMapper;
     private final OrderClient orderClient;
     private final PaymentGateway paymentGateway;
+    private final UserClient userClient;
+    private final NotificationProducer notificationProducer;
+
     @Override
     public PaymentResponseDto createPayment(PaymentRequestDto paymentRequestDto) throws RazorpayException {
         OrderResponseDto orderResponseDto = orderClient.getOrder(paymentRequestDto.getOrderNumber());
@@ -44,6 +51,7 @@ public class PaymentServiceImpl implements PaymentService {
         Payment payment = paymentMapper.toEntity(paymentRequestDto);
         payment.setAmount(orderResponseDto.getTotalAmount());
         payment.setPaymentStatus(PaymentStatus.PENDING);
+        payment.setUserId(orderResponseDto.getUserId());
         GatewayOrderResponse gatewayOrderResponse = paymentGateway.createOrder(payment.getOrderNumber(), payment.getAmount());
         payment.setGatewayOrderId(gatewayOrderResponse.getGatewayOrderId());
         payment.setPaymentReference(PaymentReferenceGenerator.generate());
@@ -77,6 +85,26 @@ public class PaymentServiceImpl implements PaymentService {
         paymentRespository.save(payment);
 
         orderClient.confirmOrder(payment.getOrderNumber());
+        UserResponseDto userResponseDto = userClient.getUserById(payment.getUserId());
+        NotificationEvent event =
+                NotificationEvent.builder()
+                        .eventId(UUID.randomUUID().toString())
+                        .email(userResponseDto.getEmail())
+                        .mobile(userResponseDto.getPhone())
+                        .type("email")
+                        .subject("Payment Successful")
+                        .orderNumber(payment.getOrderNumber())
+                        .amount(payment.getAmount())
+                        .message(
+                                "Your payment of ₹"
+                                        + payment.getAmount()
+                                        + " for order "
+                                        + payment.getOrderNumber()
+                                        + " has been successfully processed."
+                        )
+                        .eventTime(LocalDateTime.now())
+                        .build();
+        notificationProducer.sendNotification(event);
 
         return paymentMapper.toDto(payment);
     }
@@ -92,6 +120,27 @@ public class PaymentServiceImpl implements PaymentService {
         paymentRespository.save(payment);
 
         orderClient.failOrder(payment.getOrderNumber());
+        UserResponseDto userResponseDto = userClient.getUserById(payment.getUserId());
+        NotificationEvent event =
+                NotificationEvent.builder()
+                        .eventId(UUID.randomUUID().toString())
+                        .email(userResponseDto.getEmail())
+                        .mobile(userResponseDto.getPhone())
+                        .type("email")
+                        .subject("Payment Failed")
+                        .orderNumber(payment.getOrderNumber())
+                        .amount(payment.getAmount())
+                        .message(
+                                "Your payment of ₹"
+                                        + payment.getAmount()
+                                        + " for order "
+                                        + payment.getOrderNumber()
+                                        + " has failed. Please try again."
+                        )
+                        .eventTime(LocalDateTime.now())
+                        .build();
+
+        notificationProducer.sendNotification(event);
 
         return paymentMapper.toDto(payment);
     }

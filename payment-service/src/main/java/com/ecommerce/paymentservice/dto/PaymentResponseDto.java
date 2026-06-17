@@ -18,4 +18,5 @@ public class PaymentResponseDto {
     private BigDecimal amount;
     private String gatewayOrderId;
     private PaymentStatus paymentStatus;
+    private Long userId;
 }
