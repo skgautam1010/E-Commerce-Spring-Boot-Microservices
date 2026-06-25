@@ -84,7 +84,6 @@ public class PaymentServiceImpl implements PaymentService {
 
         paymentRespository.save(payment);
 
-        orderClient.confirmOrder(payment.getOrderNumber());
         UserResponseDto userResponseDto = userClient.getUserById(payment.getUserId());
         NotificationEvent event =
                 NotificationEvent.builder()
@@ -105,6 +104,7 @@ public class PaymentServiceImpl implements PaymentService {
                         .eventTime(LocalDateTime.now())
                         .build();
         notificationProducer.sendNotification(event);
+        orderClient.confirmOrder(payment.getOrderNumber());
 
         return paymentMapper.toDto(payment);
     }
@@ -119,7 +119,6 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setFailedAt(LocalDateTime.now());
         paymentRespository.save(payment);
 
-        orderClient.failOrder(payment.getOrderNumber());
         UserResponseDto userResponseDto = userClient.getUserById(payment.getUserId());
         NotificationEvent event =
                 NotificationEvent.builder()
@@ -141,6 +140,7 @@ public class PaymentServiceImpl implements PaymentService {
                         .build();
 
         notificationProducer.sendNotification(event);
+        orderClient.failOrder(payment.getOrderNumber());
 
         return paymentMapper.toDto(payment);
     }
