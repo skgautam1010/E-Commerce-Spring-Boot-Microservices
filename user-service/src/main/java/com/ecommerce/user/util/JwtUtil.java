@@ -8,6 +8,7 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
+import java.time.Instant;
 import java.util.Date;
 
 
@@ -37,6 +38,11 @@ public class JwtUtil {
     public Long getUserIdFromToken(String token) {
         Claims claims = validateToken(token).getBody();
         return Long.valueOf(claims.getSubject());
+    }
+
+    public Instant getExpirationFromToken(String token) {
+        Claims claims = validateToken(token).getBody();
+        return claims.getExpiration().toInstant();
     }
 
 }

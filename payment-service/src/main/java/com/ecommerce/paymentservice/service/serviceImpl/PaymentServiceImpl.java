@@ -6,11 +6,10 @@ import com.ecommerce.paymentservice.dto.*;
 import com.ecommerce.paymentservice.entity.Payment;
 import com.ecommerce.paymentservice.enums.OrderStatus;
 import com.ecommerce.paymentservice.enums.PaymentStatus;
-import com.ecommerce.paymentservice.event.NotificationEvent;
 import com.ecommerce.paymentservice.exceptions.PaymentNotFoundException;
 import com.ecommerce.paymentservice.kafka.NotificationProducer;
 import com.ecommerce.paymentservice.mapper.PaymentMapper;
-import com.ecommerce.paymentservice.repository.PaymentRespository;
+import com.ecommerce.paymentservice.repository.PaymentRepository;
 import com.ecommerce.paymentservice.service.PaymentGateway;
 import com.ecommerce.paymentservice.service.PaymentService;
 import com.ecommerce.paymentservice.util.PaymentReferenceGenerator;
@@ -19,16 +18,14 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class PaymentServiceImpl implements PaymentService {
 
-    private final PaymentRespository paymentRespository;
+    private final PaymentRepository paymentRespository;
     private final PaymentMapper paymentMapper;
     private final OrderClient orderClient;
     private final PaymentGateway paymentGateway;
@@ -71,7 +68,7 @@ public class PaymentServiceImpl implements PaymentService {
         return paymentMapper.toDto(payment);
     }
 
-    @Override
+    /*@Override
     public PaymentResponseDto markPaymentSuccess(Long paymentId) {
         Payment payment = paymentRespository.findById(paymentId)
                 .orElseThrow(() -> new PaymentNotFoundException("Payment not found"));
@@ -143,5 +140,5 @@ public class PaymentServiceImpl implements PaymentService {
         orderClient.failOrder(payment.getOrderNumber());
 
         return paymentMapper.toDto(payment);
-    }
+    }*/
 }

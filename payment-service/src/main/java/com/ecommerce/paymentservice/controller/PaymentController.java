@@ -33,7 +33,7 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.updatePaymentStatus(paymentId, request));
     }
 
-    @PostMapping("/{paymentId}/success")
+    /*@PostMapping("/{paymentId}/success")
     public ResponseEntity<PaymentResponseDto> markSuccess(@PathVariable Long paymentId) {
         return ResponseEntity.ok(paymentService.markPaymentSuccess(paymentId));
     }
@@ -41,5 +41,5 @@ public class PaymentController {
     @PostMapping("/{paymentId}/fail")
     public ResponseEntity<PaymentResponseDto> markFailure(@PathVariable Long paymentId) {
         return ResponseEntity.ok(paymentService.markPaymentFailure(paymentId));
-    }
+    }*/
 }

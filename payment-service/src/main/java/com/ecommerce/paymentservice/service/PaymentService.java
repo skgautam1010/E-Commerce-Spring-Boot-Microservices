@@ -9,6 +9,6 @@ public interface PaymentService {
     PaymentResponseDto createPayment(PaymentRequestDto paymentRequestDto) throws RazorpayException;
     PaymentResponseDto getPaymentByOrderNumber(String orderNumber);
     PaymentResponseDto updatePaymentStatus(Long paymentId, PaymentStatusUpdateRequest statusUpdateRequest);
-    PaymentResponseDto markPaymentSuccess(Long paymentId);
-    PaymentResponseDto markPaymentFailure(Long paymentId);
+    //PaymentResponseDto markPaymentSuccess(Long paymentId);
+    //PaymentResponseDto markPaymentFailure(Long paymentId);
 }

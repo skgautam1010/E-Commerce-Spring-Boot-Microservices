@@ -7,8 +7,9 @@ import com.ecommerce.paymentservice.dto.UserResponseDto;
 import com.ecommerce.paymentservice.enums.PaymentStatus;
 import com.ecommerce.paymentservice.event.NotificationEvent;
 import com.ecommerce.paymentservice.kafka.NotificationProducer;
-import com.ecommerce.paymentservice.repository.PaymentRespository;
+import com.ecommerce.paymentservice.repository.PaymentRepository;
 import com.razorpay.Utils;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
@@ -23,7 +24,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class RazorPayWebHookService {
-    private final PaymentRespository paymentRespository;
+    private final PaymentRepository paymentRespository;
     private final OrderClient orderClient;
     private final UserClient userClient;
     private final NotificationProducer notificationProducer;
@@ -31,6 +32,7 @@ public class RazorPayWebHookService {
     @Value("${razorpay.webhook-secret}")
     private String webHookSecret;
 
+    @Transactional
     public void processWebHook(String signature, String payload) {
         verifySignature(signature, payload);
         JSONObject event = new JSONObject(payload);
@@ -53,13 +55,22 @@ public class RazorPayWebHookService {
         String razorPayOrderId = paymentEntity.getString("order_id");
         String razorPayPaymentId = paymentEntity.getString("id");
         Payment payment = paymentRespository.findByGatewayOrderId(razorPayOrderId).orElseThrow(() -> new IllegalStateException("Payment Not Found for RazorPay Order Id"));
+        if(payment.getGatewayPaymentId() != null && payment.getGatewayPaymentId().equals(razorPayPaymentId)) {
+            log.info("Duplicate payment.captured webhook received for paymentId: {}", razorPayPaymentId);
+            return;
+        }
         markPaymentSuccess(payment, razorPayPaymentId);
     }
     private void handlePaymentFailure(JSONObject event) {
         JSONObject paymentEntity = extractPaymentEntity(event);
         String razorPayOrderId = paymentEntity.getString("order_id");
+        String razorPayPaymentId = paymentEntity.getString("id");
         Payment payment = paymentRespository.findByGatewayOrderId(razorPayOrderId).orElseThrow(() -> new IllegalStateException("Payment Not Found for RazorPay Order Id"));
-        markPaymentFailure(payment);
+        if(payment.getGatewayPaymentId() != null && payment.getGatewayPaymentId().equals(razorPayPaymentId)) {
+            log.info("Duplicate payment.failed webhook received for paymentId: {}", razorPayPaymentId);
+            return;
+        }
+        markPaymentFailure(payment, razorPayPaymentId);
     }
 
     private JSONObject extractPaymentEntity(JSONObject event) {
@@ -77,17 +88,12 @@ public class RazorPayWebHookService {
 
     private void markPaymentSuccess(Payment payment, String razorPayPaymentId) {
 
-        if(payment.getPaymentStatus() == PaymentStatus.SUCCESS) {
-            log.info("Payment Already Processed");
-            return;
-        }
         payment.setPaymentStatus(PaymentStatus.SUCCESS);
         payment.setGatewayPaymentId(razorPayPaymentId);
         payment.setPaidAt(LocalDateTime.now());
 
         paymentRespository.save(payment);
 
-        orderClient.confirmOrder(payment.getOrderNumber());
         UserResponseDto userResponseDto = userClient.getUserById(payment.getUserId());
         NotificationEvent event =
                 NotificationEvent.builder()
@@ -108,21 +114,17 @@ public class RazorPayWebHookService {
                         .eventTime(LocalDateTime.now())
                         .build();
         notificationProducer.sendNotification(event);
+        orderClient.confirmOrder(payment.getOrderNumber());
 
     }
 
 
-    private void markPaymentFailure(Payment payment) {
+    private void markPaymentFailure(Payment payment, String razorPayPaymentId) {
 
-        if(payment.getPaymentStatus() == PaymentStatus.FAILED) {
-            log.info("Payment Already Processed and it failed");
-            return;
-        }
         payment.setPaymentStatus(PaymentStatus.FAILED);
+        payment.setGatewayPaymentId(razorPayPaymentId);
         payment.setFailedAt(LocalDateTime.now());
         paymentRespository.save(payment);
-
-        orderClient.failOrder(payment.getOrderNumber());
 
         UserResponseDto userResponseDto = userClient.getUserById(payment.getUserId());
         NotificationEvent event =
@@ -145,6 +147,7 @@ public class RazorPayWebHookService {
                         .build();
 
         notificationProducer.sendNotification(event);
+        orderClient.failOrder(payment.getOrderNumber());
     }
 
 }
